@@ -1,6 +1,5 @@
-package com.example.ticketsystem.dto;
+package com.example.ticketsystem.dto.comment;
 
-import com.example.ticketsystem.entity.TicketPriority;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -10,14 +9,11 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class TicketCreateDto {
+public class CommentCreateDto {
     @NotBlank
-    private String title;
-
-    @NotBlank
-    private String description;
-
+    private String text;
     @NotNull
-    private TicketPriority priority;
+    private Long ticketId;
+    @NotNull
+    private Long authorId;
 }
-

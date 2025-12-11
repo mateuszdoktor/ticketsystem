@@ -1,4 +1,4 @@
-package com.example.ticketsystem.dto;
+package com.example.ticketsystem.dto.ticket;
 
 import com.example.ticketsystem.entity.TicketStatus;
 import jakarta.validation.constraints.NotNull;

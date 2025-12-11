@@ -1,5 +1,7 @@
-package com.example.ticketsystem.dto;
+package com.example.ticketsystem.dto.ticket;
 
+import com.example.ticketsystem.dto.comment.CommentResponseDto;
+import com.example.ticketsystem.dto.user.UserSimpleDto;
 import com.example.ticketsystem.entity.TicketPriority;
 import com.example.ticketsystem.entity.TicketStatus;
 import lombok.Getter;

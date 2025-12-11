@@ -1,5 +1,6 @@
-package com.example.ticketsystem.dto;
+package com.example.ticketsystem.dto.comment;
 
+import com.example.ticketsystem.dto.user.UserSimpleDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

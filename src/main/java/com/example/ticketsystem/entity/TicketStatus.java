@@ -1,5 +1,5 @@
 package com.example.ticketsystem.entity;
 
 public enum TicketStatus {
-    NEW,IN_PROGRESS,DONE
+    NEW, IN_PROGRESS, DONE
 }
