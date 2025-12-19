@@ -1,5 +1,6 @@
 package com.example.ticketsystem.specification;
 
+import com.example.ticketsystem.dto.ticket.TicketFilterObject;
 import com.example.ticketsystem.entity.Ticket;
 import com.example.ticketsystem.entity.TicketPriority;
 import com.example.ticketsystem.entity.TicketStatus;
@@ -43,17 +44,27 @@ public class TicketSpecifications {
         };
     }
 
-    public static Specification<Ticket> createdAtFrom(LocalDateTime start) {
-        if (start == null) return null;
+    public static Specification<Ticket> createdAtFrom(LocalDateTime dateTime) {
+        if (dateTime == null) return null;
 
         return (root, query, criteriaBuilder) ->
-                criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), start);
+                criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), dateTime);
     }
 
-    public static Specification<Ticket> createdAtTo(LocalDateTime end) {
-        if (end == null) return null;
+    public static Specification<Ticket> createdAtTo(LocalDateTime dateTime) {
+        if (dateTime == null) return null;
 
         return (root, query, criteriaBuilder) ->
-                criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), end);
+                criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), dateTime);
+    }
+
+    public static Specification<Ticket> fromFilter(TicketFilterObject f) {
+        return Specification.allOf(
+                status(f.getStatus()),
+                priority(f.getPriority()),
+                createdBy(f.getCreatedById()),
+                assignedTo(f.getAssignedToId()),
+                createdAtFrom(f.getCreatedAtFrom()),
+                createdAtTo(f.getCreatedAtTo()));
     }
 }
