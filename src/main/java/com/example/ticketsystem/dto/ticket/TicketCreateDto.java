@@ -1,7 +1,6 @@
 package com.example.ticketsystem.dto.ticket;
 
 import com.example.ticketsystem.entity.TicketPriority;
-
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,8 +20,6 @@ public class TicketCreateDto {
     private String description;
     @NotNull
     private TicketPriority priority;
-    @NotNull
-    private Long createdById;
     @Nullable
     private Long assignedToId;
 }

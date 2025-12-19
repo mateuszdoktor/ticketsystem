@@ -23,6 +23,7 @@ public class TicketResponseDto {
     private TicketPriority priority;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime closedAt;
     private UserSimpleDto createdBy;
     private UserSimpleDto assignedTo;
     private List<CommentResponseDto> comments = new ArrayList<>();
