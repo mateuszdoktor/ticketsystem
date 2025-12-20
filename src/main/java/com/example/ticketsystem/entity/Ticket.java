@@ -12,7 +12,7 @@ import java.util.List;
 @Table(name = "tickets")
 @Getter
 @Setter
-public class Ticket {
+public class Ticket extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -32,13 +32,7 @@ public class Ticket {
     @Enumerated(EnumType.STRING)
     private TicketPriority priority;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "closed_at")
     private LocalDateTime closedAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -51,18 +45,6 @@ public class Ticket {
 
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
-
-    @PrePersist
-    public void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
-
-    @PreUpdate
-    public void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 
     public boolean isCreatedBy(User user) {
         return this.createdBy.getId().equals(user.getId());
@@ -81,5 +63,4 @@ public class Ticket {
         comments.remove(comment);
         comment.setTicket(null);
     }
-
 }
