@@ -31,6 +31,12 @@ public class TicketService {
         this.userRepository = userRepository;
     }
 
+    private Ticket getTicketOrThrow(Long ticketId) {
+        return ticketRepository.findById(ticketId)
+                .orElseThrow(() ->
+                        new TicketNotFoundException("Ticket with id: " + ticketId + ", not found"));
+    }
+
     @Transactional
     public Ticket createTicket(TicketCreateDto ticketCreateDto, User loggedUser) {
         Ticket ticket = new Ticket();
@@ -55,46 +61,40 @@ public class TicketService {
 
     @Transactional(readOnly = true)
     public Ticket getTicketById(Long id) {
-        return ticketRepository.findById(id)
-                .orElseThrow(() ->
-                        new TicketNotFoundException("Ticket with id: " + id + ", not found"));
+        return getTicketOrThrow(id);
     }
 
     @Transactional
     public Ticket assignTicket(Long ticketId, Long userId, User loggedUser) {
-        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(() -> new TicketNotFoundException("Ticket with id: " + ticketId + ", not found"));
+        Ticket ticket = getTicketOrThrow(ticketId);
 
-        if (ticket.canBeManagedBy(loggedUser)) {
+        if (!ticket.canBeManagedBy(loggedUser)) {
+            throw new AccessDeniedException("User not authorised to this operation");
+        } else {
             User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User with id: " + userId + ", not found"));
             ticket.setAssignedTo(user);
             ticket.setUpdatedAt(LocalDateTime.now());
             return ticketRepository.save(ticket);
-        } else {
-            throw new AccessDeniedException("User not authorised to this operation");
         }
     }
 
     @Transactional
     public Ticket changeStatus(Long ticketId, TicketStatus newStatus, User loggedUser) {
-        Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() ->
-                        new TicketNotFoundException("Ticket with id: " + ticketId + ", not found"));
+        Ticket ticket = getTicketOrThrow(ticketId);
 
-        if (ticket.canBeManagedBy(loggedUser)) {
+        if (!ticket.canBeManagedBy(loggedUser)) {
+            throw new AccessDeniedException("User not authorised to this operation");
+        } else {
             ticket.setStatus(newStatus);
             ticket.setUpdatedAt(LocalDateTime.now());
             if (newStatus == TicketStatus.DONE) ticket.setClosedAt(LocalDateTime.now());
             return ticketRepository.save(ticket);
-        } else {
-            throw new AccessDeniedException("User not authorised to this operation");
         }
     }
 
     @Transactional
     public Comment addComment(Long ticketId, CommentCreateDto commentCreateDto, User loggedUser) {
-        Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() ->
-                        new TicketNotFoundException("Ticket with id: " + ticketId + ", not found"));
+        Ticket ticket = getTicketOrThrow(ticketId);
 
         Comment comment = new Comment();
         comment.setText(commentCreateDto.getText());
