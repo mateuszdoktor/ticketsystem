@@ -38,7 +38,7 @@ public class Ticket {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "closed_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime closedAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -51,6 +51,18 @@ public class Ticket {
 
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
+
+    @PrePersist
+    public void onCreate() {
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 
     public boolean isCreatedBy(User user) {
         return this.createdBy.getId().equals(user.getId());
