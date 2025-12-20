@@ -79,13 +79,17 @@ public class TicketService {
     public Ticket changeStatus(Long ticketId, TicketStatus newStatus, User loggedUser) {
         Ticket ticket = getTicketOrThrow(ticketId);
 
-        if (!ticket.canBeManagedBy(loggedUser)) {
+        if (!ticket.canBeManagedBy(loggedUser))
             throw new AccessDeniedException("User not authorised to this operation");
-        } else {
-            ticket.setStatus(newStatus);
-            if (newStatus == TicketStatus.DONE) ticket.setClosedAt(LocalDateTime.now());
-            return ticketRepository.save(ticket);
-        }
+
+        if (!ticket.getStatus().canTransitionTo(newStatus))
+            throw new IllegalArgumentException("Ticket with status: " + ticket.getStatus() + ", can't transition to status: " + newStatus);
+
+
+        ticket.setStatus(newStatus);
+        if (newStatus == TicketStatus.CLOSED) ticket.setClosedAt(LocalDateTime.now());
+        
+        return ticketRepository.save(ticket);
     }
 
     @Transactional
