@@ -13,6 +13,10 @@ import java.util.List;
 @Getter
 @Setter
 public class Ticket extends AuditableEntity {
+
+    @Version
+    private Long version;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
