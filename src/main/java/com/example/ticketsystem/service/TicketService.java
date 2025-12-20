@@ -44,8 +44,6 @@ public class TicketService {
         ticket.setDescription(ticketCreateDto.getDescription());
         ticket.setStatus(TicketStatus.NEW);
         ticket.setPriority(ticketCreateDto.getPriority());
-        ticket.setCreatedAt(LocalDateTime.now());
-        ticket.setUpdatedAt(LocalDateTime.now());
         ticket.setCreatedBy(loggedUser);
 
         if (ticketCreateDto.getAssignedToId() != null) {
@@ -73,7 +71,6 @@ public class TicketService {
         } else {
             User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User with id: " + userId + ", not found"));
             ticket.setAssignedTo(user);
-            ticket.setUpdatedAt(LocalDateTime.now());
             return ticketRepository.save(ticket);
         }
     }
@@ -86,7 +83,6 @@ public class TicketService {
             throw new AccessDeniedException("User not authorised to this operation");
         } else {
             ticket.setStatus(newStatus);
-            ticket.setUpdatedAt(LocalDateTime.now());
             if (newStatus == TicketStatus.DONE) ticket.setClosedAt(LocalDateTime.now());
             return ticketRepository.save(ticket);
         }
@@ -99,7 +95,6 @@ public class TicketService {
         Comment comment = new Comment();
         comment.setText(commentCreateDto.getText());
         comment.setAuthor(loggedUser);
-        comment.setCreatedAt(LocalDateTime.now());
 
         ticket.addComment(comment);
 
