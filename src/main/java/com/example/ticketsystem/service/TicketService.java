@@ -59,7 +59,9 @@ public class TicketService {
 
     @Transactional(readOnly = true)
     public Ticket getTicketById(Long id) {
-        return getTicketOrThrow(id);
+        return ticketRepository.findDetailedById(id)
+                .orElseThrow(() ->
+                        new TicketNotFoundException("Ticket with id: " + id + ", not found"));
     }
 
     @Transactional
@@ -69,7 +71,9 @@ public class TicketService {
         if (!ticket.canBeManagedBy(loggedUser)) {
             throw new AccessDeniedException("User not authorised to this operation");
         } else {
-            User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User with id: " + userId + ", not found"));
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() ->
+                            new UserNotFoundException("User with id: " + userId + ", not found"));
             ticket.setAssignedTo(user);
             return ticketRepository.save(ticket);
         }
@@ -88,7 +92,7 @@ public class TicketService {
 
         ticket.setStatus(newStatus);
         if (newStatus == TicketStatus.CLOSED) ticket.setClosedAt(LocalDateTime.now());
-        
+
         return ticketRepository.save(ticket);
     }
 
