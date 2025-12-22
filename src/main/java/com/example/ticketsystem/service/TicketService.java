@@ -64,7 +64,7 @@ public class TicketService {
     }
 
     @Transactional(readOnly = true)
-    public Ticket getTicketById(Long id) {
+    public Ticket findById(Long id) {
         return ticketRepository.findDetailedById(id)
                 .orElseThrow(() ->
                         new TicketNotFoundException("Ticket with id: " + id + ", not found"));
