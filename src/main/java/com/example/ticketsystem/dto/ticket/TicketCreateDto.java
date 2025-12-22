@@ -1,6 +1,7 @@
 package com.example.ticketsystem.dto.ticket;
 
 import com.example.ticketsystem.entity.TicketPriority;
+
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,6 +15,7 @@ import lombok.Setter;
 @Setter
 public class TicketCreateDto {
     @NotBlank
+    @Size(max = 100)
     private String title;
     @NotBlank
     @Size(max = 500)
