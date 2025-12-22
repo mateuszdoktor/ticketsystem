@@ -9,4 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     @EntityGraph(attributePaths = {"author"})
     Page<Comment> findByTicketId(Long ticketId, Pageable pageable);
+
+    Page<Comment> findByAuthorId(Long userId, Pageable pageable);
 }

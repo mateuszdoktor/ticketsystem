@@ -58,10 +58,39 @@ public class TicketService {
     }
 
     @Transactional(readOnly = true)
+    public Page<Ticket> searchTickets(TicketFilterObject filterObject, Pageable pageable) {
+        Specification<Ticket> spec = TicketSpecifications.fromFilter(filterObject);
+        return ticketRepository.findAll(spec, pageable);
+    }
+
+    @Transactional(readOnly = true)
     public Ticket getTicketById(Long id) {
         return ticketRepository.findDetailedById(id)
                 .orElseThrow(() ->
                         new TicketNotFoundException("Ticket with id: " + id + ", not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Ticket> findByCreatedById(Long userId, Pageable pageable) {
+        if (!userRepository.existsById(userId)) {
+            throw new UserNotFoundException("User with id: " + userId + ", not found");
+        }
+
+        return ticketRepository.findByCreatedById(userId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Ticket> findByAssignedToId(Long userId, Pageable pageable) {
+        if (!userRepository.existsById(userId)) {
+            throw new UserNotFoundException("User with id: " + userId + ", not found");
+        }
+
+        return ticketRepository.findByAssignedToId(userId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Ticket> findMyTickets(User loggedUser, Pageable pageable) {
+        return ticketRepository.findByCreatedById(loggedUser.getId(), pageable);
     }
 
     @Transactional
@@ -109,16 +138,5 @@ public class TicketService {
         ticketRepository.save(ticket);
 
         return comment;
-    }
-
-    @Transactional(readOnly = true)
-    public Page<Ticket> findMyTickets(User loggedUser, Pageable pageable) {
-        return ticketRepository.findByCreatedBy(loggedUser, pageable);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<Ticket> searchTickets(TicketFilterObject filterObject, Pageable pageable) {
-        Specification<Ticket> spec = TicketSpecifications.fromFilter(filterObject);
-        return ticketRepository.findAll(spec, pageable);
     }
 }
