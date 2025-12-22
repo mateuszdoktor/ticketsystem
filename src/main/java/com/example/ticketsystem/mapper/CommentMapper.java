@@ -6,7 +6,7 @@ import com.example.ticketsystem.entity.Comment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {UserMapper.class})
 public interface CommentMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "ticket", ignore = true)

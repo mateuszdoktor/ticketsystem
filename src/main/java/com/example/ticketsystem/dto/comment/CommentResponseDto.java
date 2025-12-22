@@ -1,11 +1,12 @@
 package com.example.ticketsystem.dto.comment;
 
+import java.time.LocalDateTime;
+
 import com.example.ticketsystem.dto.user.UserSimpleDto;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @Getter
