@@ -2,7 +2,7 @@ package com.example.ticketsystem.mapper;
 
 import com.example.ticketsystem.dto.comment.CommentCreateDto;
 import com.example.ticketsystem.dto.comment.CommentResponseDto;
-import com.example.ticketsystem.entity.Comment;
+import com.example.ticketsystem.entity.comment.Comment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

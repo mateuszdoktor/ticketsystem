@@ -1,13 +1,12 @@
 package com.example.ticketsystem.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-
 import com.example.ticketsystem.dto.ticket.TicketCreateDto;
 import com.example.ticketsystem.dto.ticket.TicketListDto;
 import com.example.ticketsystem.dto.ticket.TicketResponseDto;
 import com.example.ticketsystem.dto.ticket.TicketSimpleDto;
-import com.example.ticketsystem.entity.Ticket;
+import com.example.ticketsystem.entity.ticket.Ticket;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring", uses = {UserMapper.class, CommentMapper.class})
 public interface TicketMapper {

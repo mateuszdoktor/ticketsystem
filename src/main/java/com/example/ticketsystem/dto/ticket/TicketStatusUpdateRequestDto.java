@@ -1,7 +1,6 @@
 package com.example.ticketsystem.dto.ticket;
 
-import com.example.ticketsystem.entity.TicketStatus;
-
+import com.example.ticketsystem.entity.ticket.TicketStatus;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

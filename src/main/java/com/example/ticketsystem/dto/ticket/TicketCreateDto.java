@@ -1,7 +1,6 @@
 package com.example.ticketsystem.dto.ticket;
 
-import com.example.ticketsystem.entity.TicketPriority;
-
+import com.example.ticketsystem.entity.ticket.TicketPriority;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

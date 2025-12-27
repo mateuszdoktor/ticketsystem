@@ -1,10 +1,10 @@
 package com.example.ticketsystem.specification;
 
 import com.example.ticketsystem.dto.ticket.TicketFilterObject;
-import com.example.ticketsystem.entity.Ticket;
-import com.example.ticketsystem.entity.TicketPriority;
-import com.example.ticketsystem.entity.TicketStatus;
-import com.example.ticketsystem.entity.User;
+import com.example.ticketsystem.entity.ticket.Ticket;
+import com.example.ticketsystem.entity.ticket.TicketPriority;
+import com.example.ticketsystem.entity.ticket.TicketStatus;
+import com.example.ticketsystem.entity.user.User;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;

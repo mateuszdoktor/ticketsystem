@@ -1,7 +1,7 @@
 package com.example.ticketsystem.dto.ticket;
 
-import com.example.ticketsystem.entity.TicketPriority;
-import com.example.ticketsystem.entity.TicketStatus;
+import com.example.ticketsystem.entity.ticket.TicketPriority;
+import com.example.ticketsystem.entity.ticket.TicketStatus;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;

@@ -1,14 +1,13 @@
 package com.example.ticketsystem.dto.ticket;
 
-import java.time.LocalDateTime;
-
 import com.example.ticketsystem.dto.user.UserSimpleDto;
-import com.example.ticketsystem.entity.TicketPriority;
-import com.example.ticketsystem.entity.TicketStatus;
-
+import com.example.ticketsystem.entity.ticket.TicketPriority;
+import com.example.ticketsystem.entity.ticket.TicketStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @Getter

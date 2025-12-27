@@ -1,5 +1,7 @@
-package com.example.ticketsystem.entity;
+package com.example.ticketsystem.entity.user;
 
+import com.example.ticketsystem.entity.comment.Comment;
+import com.example.ticketsystem.entity.ticket.Ticket;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

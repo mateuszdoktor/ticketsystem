@@ -1,7 +1,7 @@
 package com.example.ticketsystem.service;
 
 import com.example.ticketsystem.dto.user.UserCreateDto;
-import com.example.ticketsystem.entity.User;
+import com.example.ticketsystem.entity.user.User;
 import com.example.ticketsystem.exceptions.user.UserAlreadyExistsException;
 import com.example.ticketsystem.exceptions.user.UserNotFoundException;
 import com.example.ticketsystem.repository.UserRepository;

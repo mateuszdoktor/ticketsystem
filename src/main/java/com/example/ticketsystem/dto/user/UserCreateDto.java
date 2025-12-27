@@ -1,7 +1,6 @@
 package com.example.ticketsystem.dto.user;
 
-import com.example.ticketsystem.entity.UserRole;
-
+import com.example.ticketsystem.entity.user.UserRole;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

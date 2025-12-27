@@ -1,6 +1,6 @@
 package com.example.ticketsystem.repository;
 
-import com.example.ticketsystem.entity.Ticket;
+import com.example.ticketsystem.entity.ticket.Ticket;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;

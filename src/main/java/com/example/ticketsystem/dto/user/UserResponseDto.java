@@ -1,6 +1,6 @@
 package com.example.ticketsystem.dto.user;
 
-import com.example.ticketsystem.entity.UserRole;
+import com.example.ticketsystem.entity.user.UserRole;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

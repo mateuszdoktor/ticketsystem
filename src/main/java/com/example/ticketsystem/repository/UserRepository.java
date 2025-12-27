@@ -1,6 +1,6 @@
 package com.example.ticketsystem.repository;
 
-import com.example.ticketsystem.entity.User;
+import com.example.ticketsystem.entity.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

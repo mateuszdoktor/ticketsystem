@@ -1,4 +1,4 @@
-package com.example.ticketsystem.entity;
+package com.example.ticketsystem.entity.ticket;
 
 import java.util.EnumSet;
 

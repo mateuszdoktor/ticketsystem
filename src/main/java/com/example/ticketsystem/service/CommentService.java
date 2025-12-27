@@ -1,6 +1,6 @@
 package com.example.ticketsystem.service;
 
-import com.example.ticketsystem.entity.Comment;
+import com.example.ticketsystem.entity.comment.Comment;
 import com.example.ticketsystem.exceptions.ticket.TicketNotFoundException;
 import com.example.ticketsystem.exceptions.user.UserNotFoundException;
 import com.example.ticketsystem.repository.CommentRepository;
