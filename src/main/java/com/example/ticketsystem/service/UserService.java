@@ -40,17 +40,17 @@ public class UserService {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN') or #id == principal.claims['userId']")
+    @PreAuthorize("hasRole('ADMIN') or #id.toString() == principal.claims['userId']")
     @Transactional(readOnly = true)
     public User findById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User with id: " + id + ", not found."));
     }
 
-    @PreAuthorize("hasRole('ADMIN') or #username == authentication.name")
-    @Transactional(readOnly = true)
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("User with username: " + username + ", not found."));
-    }
+//    @PreAuthorize("hasRole('ADMIN') or #username == authentication.name")
+//    @Transactional(readOnly = true)
+//    public User findByUsername(String username) {
+//        return userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("User with username: " + username + ", not found."));
+//    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional(readOnly = true)

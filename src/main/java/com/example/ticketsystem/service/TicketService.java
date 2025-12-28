@@ -75,7 +75,7 @@ public class TicketService {
                         new TicketNotFoundException("Ticket with id: " + id + ", not found"));
     }
 
-    @PreAuthorize("hasRole('ADMIN') or #userId == principal.claims['userId']")
+    @PreAuthorize("hasRole('ADMIN') or #userId.toString() == principal.claims['userId']")
     @Transactional(readOnly = true)
     public Page<Ticket> findByCreatedById(Long userId, Pageable pageable) {
         if (!userRepository.existsById(userId)) {
@@ -85,7 +85,7 @@ public class TicketService {
         return ticketRepository.findByCreatedById(userId, pageable);
     }
 
-    @PreAuthorize("hasRole('ADMIN') or #userId == principal.claims['userId']")
+    @PreAuthorize("hasRole('ADMIN') or #userId.toString() == principal.claims['userId']")
     @Transactional(readOnly = true)
     public Page<Ticket> findByAssignedToId(Long userId, Pageable pageable) {
         if (!userRepository.existsById(userId)) {
@@ -97,8 +97,8 @@ public class TicketService {
 
     @PreAuthorize("isAuthenticated()")
     @Transactional(readOnly = true)
-    public Page<Ticket> findMyTickets(User loggedUser, Pageable pageable) {
-        return ticketRepository.findByCreatedById(loggedUser.getId(), pageable);
+    public Page<Ticket> findMyTickets(Long userId, Pageable pageable) {
+        return ticketRepository.findByCreatedById(userId, pageable);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

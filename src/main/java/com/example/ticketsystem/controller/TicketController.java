@@ -56,9 +56,10 @@ public class TicketController {
     }
 
     @PostMapping
-    public ResponseEntity<TicketResponseDto> createTicket(@Valid @RequestBody TicketCreateDto ticketCreateDto, 
+    public ResponseEntity<TicketResponseDto> createTicket(@Valid @RequestBody TicketCreateDto ticketCreateDto,
                                                           @AuthenticationPrincipal Jwt jwt) {
-        var user = userService.findByUsername(jwt.getSubject());
+        Long userId = Long.valueOf(jwt.getClaim("userId").toString());
+        var user = userService.findById(userId);
         Ticket ticket = ticketService.createTicket(ticketCreateDto, user);
         TicketResponseDto ticketResponseDto = ticketMapper.toResponseDto(ticket);
 
@@ -89,8 +90,8 @@ public class TicketController {
 
     @GetMapping("/my")
     public ResponseEntity<Page<TicketListDto>> getMyTickets(@AuthenticationPrincipal Jwt jwt, Pageable pageable) {
-        var user = userService.findByUsername(jwt.getSubject());
-        Page<Ticket> page = ticketService.findMyTickets(user, pageable);
+        Long userId = Long.valueOf(jwt.getClaim("userId").toString());
+        Page<Ticket> page = ticketService.findMyTickets(userId, pageable);
         Page<TicketListDto> dtoPage = page.map(ticketMapper::toListDto);
 
         HttpHeaders httpHeaders = PaginationUtil.buildPaginationHeaders(dtoPage);
@@ -99,10 +100,11 @@ public class TicketController {
     }
 
     @PatchMapping("/{id}/assignee")
-    public ResponseEntity<TicketResponseDto> assignTicket(@PathVariable Long id, 
-                                                          @AuthenticationPrincipal Jwt jwt, 
+    public ResponseEntity<TicketResponseDto> assignTicket(@PathVariable Long id,
+                                                          @AuthenticationPrincipal Jwt jwt,
                                                           @Valid @RequestBody TicketAssignRequestDto ticketAssignRequestDto) {
-        var user = userService.findByUsername(jwt.getSubject());
+        Long userId = Long.valueOf(jwt.getClaim("userId").toString());
+        var user = userService.findById(userId);
         Ticket ticket = ticketService.assignTicket(id, ticketAssignRequestDto.getUserId(), user);
         TicketResponseDto ticketResponseDto = ticketMapper.toResponseDto(ticket);
 
@@ -110,10 +112,11 @@ public class TicketController {
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<TicketResponseDto> changeTicketStatus(@PathVariable Long id, 
-                                                                 @AuthenticationPrincipal Jwt jwt, 
-                                                                 @Valid @RequestBody TicketStatusUpdateRequestDto ticketStatusUpdateRequestDto) {
-        var user = userService.findByUsername(jwt.getSubject());
+    public ResponseEntity<TicketResponseDto> changeTicketStatus(@PathVariable Long id,
+                                                                @AuthenticationPrincipal Jwt jwt,
+                                                                @Valid @RequestBody TicketStatusUpdateRequestDto ticketStatusUpdateRequestDto) {
+        Long userId = Long.valueOf(jwt.getClaim("userId").toString());
+        var user = userService.findById(userId);
         Ticket ticket = ticketService.changeStatus(id, ticketStatusUpdateRequestDto.getStatus(), user);
         TicketResponseDto ticketResponseDto = ticketMapper.toResponseDto(ticket);
 
@@ -121,10 +124,11 @@ public class TicketController {
     }
 
     @PostMapping("/{id}/comments")
-    public ResponseEntity<CommentResponseDto> addCommentToTicket(@PathVariable Long id, 
-                                                                  @AuthenticationPrincipal Jwt jwt, 
-                                                                  @Valid @RequestBody CommentCreateDto commentCreateDto) {
-        var user = userService.findByUsername(jwt.getSubject());
+    public ResponseEntity<CommentResponseDto> addCommentToTicket(@PathVariable Long id,
+                                                                 @AuthenticationPrincipal Jwt jwt,
+                                                                 @Valid @RequestBody CommentCreateDto commentCreateDto) {
+        Long userId = Long.valueOf(jwt.getClaim("userId").toString());
+        var user = userService.findById(userId);
         Comment comment = ticketService.addComment(id, commentCreateDto, user);
         CommentResponseDto commentResponseDto = commentMapper.toResponseDto(comment);
 

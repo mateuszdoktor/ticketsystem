@@ -35,7 +35,7 @@ public class CommentService {
         return commentRepository.findByTicketId(ticketId, pageable);
     }
 
-    @PreAuthorize("hasRole('ADMIN') or #authorId == principal.claims['userId']")
+    @PreAuthorize("hasRole('ADMIN') or #authorId.toString() == principal.claims['userId']")
     @Transactional(readOnly = true)
     public Page<Comment> findByAuthorId(Long authorId, Pageable pageable) {
         if (!userRepository.existsById(authorId)) {
