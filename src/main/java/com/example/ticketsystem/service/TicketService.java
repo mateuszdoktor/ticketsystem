@@ -1,5 +1,14 @@
 package com.example.ticketsystem.service;
 
+import java.time.LocalDateTime;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.ticketsystem.dto.comment.CommentCreateDto;
 import com.example.ticketsystem.dto.ticket.TicketCreateDto;
 import com.example.ticketsystem.dto.ticket.TicketFilterObject;
@@ -13,13 +22,6 @@ import com.example.ticketsystem.exceptions.user.UserNotFoundException;
 import com.example.ticketsystem.repository.TicketRepository;
 import com.example.ticketsystem.repository.UserRepository;
 import com.example.ticketsystem.specification.TicketSpecifications;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Service
 public class TicketService {
@@ -37,6 +39,7 @@ public class TicketService {
                         new TicketNotFoundException("Ticket with id: " + ticketId + ", not found"));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Transactional
     public Ticket createTicket(TicketCreateDto ticketCreateDto, User loggedUser) {
         Ticket ticket = new Ticket();
@@ -57,12 +60,14 @@ public class TicketService {
         return ticketRepository.save(ticket);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Transactional(readOnly = true)
     public Page<Ticket> searchTickets(TicketFilterObject filterObject, Pageable pageable) {
         Specification<Ticket> spec = TicketSpecifications.fromFilter(filterObject);
         return ticketRepository.findAll(spec, pageable);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Transactional(readOnly = true)
     public Ticket findById(Long id) {
         return ticketRepository.findDetailedById(id)
@@ -70,6 +75,7 @@ public class TicketService {
                         new TicketNotFoundException("Ticket with id: " + id + ", not found"));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or #userId == principal.claims['userId']")
     @Transactional(readOnly = true)
     public Page<Ticket> findByCreatedById(Long userId, Pageable pageable) {
         if (!userRepository.existsById(userId)) {
@@ -79,6 +85,7 @@ public class TicketService {
         return ticketRepository.findByCreatedById(userId, pageable);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or #userId == principal.claims['userId']")
     @Transactional(readOnly = true)
     public Page<Ticket> findByAssignedToId(Long userId, Pageable pageable) {
         if (!userRepository.existsById(userId)) {
@@ -88,11 +95,13 @@ public class TicketService {
         return ticketRepository.findByAssignedToId(userId, pageable);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Transactional(readOnly = true)
     public Page<Ticket> findMyTickets(User loggedUser, Pageable pageable) {
         return ticketRepository.findByCreatedById(loggedUser.getId(), pageable);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public Ticket assignTicket(Long ticketId, Long userId, User loggedUser) {
         Ticket ticket = getTicketOrThrow(ticketId);
@@ -108,6 +117,7 @@ public class TicketService {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Transactional
     public Ticket changeStatus(Long ticketId, TicketStatus newStatus, User loggedUser) {
         Ticket ticket = getTicketOrThrow(ticketId);
@@ -125,6 +135,7 @@ public class TicketService {
         return ticketRepository.save(ticket);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Transactional
     public Comment addComment(Long ticketId, CommentCreateDto commentCreateDto, User loggedUser) {
         Ticket ticket = getTicketOrThrow(ticketId);
