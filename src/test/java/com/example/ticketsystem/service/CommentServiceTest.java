@@ -25,13 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-/*
- *  CommentService: CommentService.java
- *      findByTicketId: 404 gdy ticket nie istnieje; w przeciwnym razie delegacja repo.
- *      findByAuthorId: 404 gdy user nie istnieje; delegacja repo.
- *
- * */
-
 @ExtendWith(MockitoExtension.class)
 public class CommentServiceTest {
 
