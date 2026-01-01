@@ -1,18 +1,20 @@
 package com.example.ticketsystem.entity.ticket;
 
-import com.example.ticketsystem.entity.comment.Comment;
-import com.example.ticketsystem.entity.user.User;
-import com.example.ticketsystem.entity.user.UserRole;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import com.example.ticketsystem.entity.comment.Comment;
+import com.example.ticketsystem.entity.user.User;
+import com.example.ticketsystem.entity.user.UserRole;
 
-public class TicketTest {
+class TicketTest {
 
-    User user = null;
-    Ticket ticket = null;
-    Comment comment = null;
+    private User user;
+    private Ticket ticket;
+    private Comment comment;
 
     @BeforeEach
     void setup() {

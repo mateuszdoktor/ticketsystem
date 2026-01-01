@@ -1,5 +1,28 @@
 package com.example.ticketsystem.service;
 
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 import com.example.ticketsystem.dto.comment.CommentCreateDto;
 import com.example.ticketsystem.dto.ticket.TicketCreateDto;
 import com.example.ticketsystem.entity.comment.Comment;
@@ -13,57 +36,36 @@ import com.example.ticketsystem.exceptions.ticket.TicketNotFoundException;
 import com.example.ticketsystem.exceptions.user.UserNotFoundException;
 import com.example.ticketsystem.repository.TicketRepository;
 import com.example.ticketsystem.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.BDDMockito.any;
-import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
-public class TicketServiceTest {
-    @Mock
-    TicketRepository ticketRepository;
+class TicketServiceTest {
 
     @Mock
-    UserRepository userRepository;
+    private TicketRepository ticketRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
-    TicketService ticketService;
-
-    User user = null;
-    User user1 = null;
-    Pageable pageable = null;
-    Ticket ticket = null;
+    private TicketService ticketService;
 
     @Nested
     class WhenCreatingTicket {
 
-        TicketCreateDto ticketCreateDto;
+        private TicketCreateDto ticketCreateDto;
+        private User creator;
 
         @BeforeEach
         void setup() {
             ticketCreateDto = new TicketCreateDto();
-            user = new User();
+            creator = new User();
         }
 
         @Test
         void createTicket_ShouldAssignStatusNew() {
-            given(ticketRepository.save(any(Ticket.class))).willAnswer((invocation) -> invocation.getArgument(0));
+            given(ticketRepository.save(any(Ticket.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-            Ticket result = ticketService.createTicket(ticketCreateDto, user);
+            Ticket result = ticketService.createTicket(ticketCreateDto, creator);
 
             assertEquals(TicketStatus.NEW, result.getStatus());
         }
@@ -73,30 +75,33 @@ public class TicketServiceTest {
             ticketCreateDto.setPriority(TicketPriority.HIGH);
             given(ticketRepository.save(any(Ticket.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-            Ticket result = ticketService.createTicket(ticketCreateDto, user);
+            Ticket result = ticketService.createTicket(ticketCreateDto, creator);
 
-            assertEquals(ticketCreateDto.getPriority(), result.getPriority());
+            assertEquals(TicketPriority.HIGH, result.getPriority());
         }
 
         @Test
-        void createTicket_ShouldAssignTicketToUser() {
-            user.setId(1L);
-            ticketCreateDto.setAssignedToId(1L);
+        void createTicket_WhenAssignedToIdProvided_ShouldAssignTicketToUser() {
+            Long assigneeId = 1L;
+            User assignee = new User();
+            assignee.setId(assigneeId);
+            ticketCreateDto.setAssignedToId(assigneeId);
 
-            given(userRepository.findById(1L)).willReturn(Optional.of(user));
+            given(userRepository.findById(assigneeId)).willReturn(Optional.of(assignee));
             given(ticketRepository.save(any(Ticket.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-            Ticket result = ticketService.createTicket(ticketCreateDto, user);
+            Ticket result = ticketService.createTicket(ticketCreateDto, creator);
 
-            assertEquals(user, result.getAssignedTo());
+            assertEquals(assignee, result.getAssignedTo());
         }
 
         @Test
-        void createTicket_UserDoesNotExist_ShouldThrowUserNotFoundException() {
-            ticketCreateDto.setAssignedToId(1L);
-            given(userRepository.findById(1L)).willReturn(Optional.empty());
+        void createTicket_WhenAssignedUserDoesNotExist_ShouldThrowUserNotFoundException() {
+            Long nonExistentUserId = 999L;
+            ticketCreateDto.setAssignedToId(nonExistentUserId);
+            given(userRepository.findById(nonExistentUserId)).willReturn(Optional.empty());
 
-            assertThrows(UserNotFoundException.class, () -> ticketService.createTicket(ticketCreateDto, user));
+            assertThrows(UserNotFoundException.class, () -> ticketService.createTicket(ticketCreateDto, creator));
         }
 
         @Test
@@ -104,35 +109,42 @@ public class TicketServiceTest {
             Ticket savedTicket = new Ticket();
             savedTicket.setId(1L);
             savedTicket.setStatus(TicketStatus.NEW);
-
             given(ticketRepository.save(any(Ticket.class))).willReturn(savedTicket);
 
+            Ticket result = ticketService.createTicket(ticketCreateDto, creator);
 
-            assertSame(savedTicket, ticketService.createTicket(ticketCreateDto, user));
+            assertSame(savedTicket, result);
         }
     }
 
     @Nested
     class WhenFindingById {
+
         @Test
         void findById_ShouldDelegateToRepositoryFindDetailedById() {
-            ticket = new Ticket();
-            given(ticketRepository.findDetailedById(1L)).willReturn(Optional.of(ticket));
+            Long ticketId = 1L;
+            Ticket expectedTicket = new Ticket();
+            given(ticketRepository.findDetailedById(ticketId)).willReturn(Optional.of(expectedTicket));
 
-            assertSame(ticket, ticketService.findById(1L));
+            Ticket result = ticketService.findById(ticketId);
 
+            assertSame(expectedTicket, result);
         }
 
         @Test
-        void findById_TicketDoesNotExist_ShouldThrowTicketNotFoundException() {
-            given(ticketRepository.findDetailedById(1L)).willReturn(Optional.empty());
+        void findById_WhenTicketDoesNotExist_ShouldThrowTicketNotFoundException() {
+            Long ticketId = 1L;
+            given(ticketRepository.findDetailedById(ticketId)).willReturn(Optional.empty());
 
-            assertThrows(TicketNotFoundException.class, () -> ticketService.findById(1L));
+            assertThrows(TicketNotFoundException.class, () -> ticketService.findById(ticketId));
         }
     }
 
     @Nested
     class WhenFindingByCreatedById {
+
+        private Pageable pageable;
+
         @BeforeEach
         void setup() {
             pageable = PageRequest.of(0, 10);
@@ -140,23 +152,30 @@ public class TicketServiceTest {
 
         @Test
         void findByCreatedById_ShouldDelegateToRepositoryAndReturnPage() {
-            Page<Ticket> repoPage = new PageImpl<>(List.of(new Ticket()));
-            given(userRepository.existsById(1L)).willReturn(true);
-            given(ticketRepository.findByCreatedById(1L, pageable)).willReturn(repoPage);
+            Long userId = 1L;
+            Page<Ticket> expectedPage = new PageImpl<>(List.of(new Ticket()));
+            given(userRepository.existsById(userId)).willReturn(true);
+            given(ticketRepository.findByCreatedById(userId, pageable)).willReturn(expectedPage);
 
-            assertSame(repoPage, ticketService.findByCreatedById(1L, pageable));
+            Page<Ticket> result = ticketService.findByCreatedById(userId, pageable);
+
+            assertSame(expectedPage, result);
         }
 
         @Test
-        void findByCreatedById_UserDoesNotExist_ShouldThrowUserNotFoundException() {
-            given(userRepository.existsById(1L)).willReturn(false);
+        void findByCreatedById_WhenUserDoesNotExist_ShouldThrowUserNotFoundException() {
+            Long userId = 1L;
+            given(userRepository.existsById(userId)).willReturn(false);
 
-            assertThrows(UserNotFoundException.class, () -> ticketService.findByCreatedById(1L, pageable));
+            assertThrows(UserNotFoundException.class, () -> ticketService.findByCreatedById(userId, pageable));
         }
     }
 
     @Nested
     class WhenFindingByAssignedToId {
+
+        private Pageable pageable;
+
         @BeforeEach
         void setup() {
             pageable = PageRequest.of(0, 10);
@@ -164,171 +183,208 @@ public class TicketServiceTest {
 
         @Test
         void findByAssignedToId_ShouldDelegateToRepositoryAndReturnPage() {
-            Page<Ticket> repoPage = new PageImpl<>(List.of(new Ticket()));
-            given(userRepository.existsById(1L)).willReturn(true);
-            given(ticketRepository.findByAssignedToId(1L, pageable)).willReturn(repoPage);
+            Long userId = 1L;
+            Page<Ticket> expectedPage = new PageImpl<>(List.of(new Ticket()));
+            given(userRepository.existsById(userId)).willReturn(true);
+            given(ticketRepository.findByAssignedToId(userId, pageable)).willReturn(expectedPage);
 
-            assertSame(repoPage, ticketService.findByAssignedToId(1L, pageable));
+            Page<Ticket> result = ticketService.findByAssignedToId(userId, pageable);
+
+            assertSame(expectedPage, result);
         }
 
         @Test
-        void findByAssignedToId_UserDoesNotExist_ShouldThrowUserNotFoundException() {
-            given(userRepository.existsById(1L)).willReturn(false);
+        void findByAssignedToId_WhenUserDoesNotExist_ShouldThrowUserNotFoundException() {
+            Long userId = 1L;
+            given(userRepository.existsById(userId)).willReturn(false);
 
-            assertThrows(UserNotFoundException.class, () -> ticketService.findByAssignedToId(1L, pageable));
+            assertThrows(UserNotFoundException.class, () -> ticketService.findByAssignedToId(userId, pageable));
         }
-
     }
 
     @Nested
     class WhenAssigningTicket {
+
+        private User requestingUser;
+
         @BeforeEach
         void setup() {
-            user = new User();
+            requestingUser = new User();
         }
 
         @Test
         void assignTicket_WhenUserNotAuthorized_ShouldThrowAccessDeniedException() {
-            user.setUserRole(UserRole.ROLE_USER);
+            Long ticketId = 1L;
+            Long assigneeId = 1L;
+            requestingUser.setUserRole(UserRole.ROLE_USER);
+            
             Ticket ticket = new Ticket();
-            User user1 = new User();
-            user1.setId(1L);
-            ticket.setCreatedBy(user1);
-            given(ticketRepository.findById(1L)).willReturn(Optional.of(ticket));
+            User ticketCreator = new User();
+            ticketCreator.setId(2L);
+            ticket.setCreatedBy(ticketCreator);
+            
+            given(ticketRepository.findById(ticketId)).willReturn(Optional.of(ticket));
 
-
-            assertThrows(AccessDeniedException.class, () -> ticketService.assignTicket(1L, 1L, user));
+            assertThrows(AccessDeniedException.class, () -> ticketService.assignTicket(ticketId, assigneeId, requestingUser));
         }
 
         @Test
-        void assignTicket_UserDoesNotExist_ShouldThrowUserNotFoundException() {
-            given(ticketRepository.findById(1L)).willReturn(Optional.of(new Ticket()));
-            user.setUserRole(UserRole.ROLE_ADMIN);
-            given(userRepository.findById(1L)).willReturn(Optional.empty());
+        void assignTicket_WhenAssigneeDoesNotExist_ShouldThrowUserNotFoundException() {
+            Long ticketId = 1L;
+            Long assigneeId = 1L;
+            requestingUser.setUserRole(UserRole.ROLE_ADMIN);
+            
+            given(ticketRepository.findById(ticketId)).willReturn(Optional.of(new Ticket()));
+            given(userRepository.findById(assigneeId)).willReturn(Optional.empty());
 
-            assertThrows(UserNotFoundException.class, () -> ticketService.assignTicket(1L, 1L, user));
+            assertThrows(UserNotFoundException.class, () -> ticketService.assignTicket(ticketId, assigneeId, requestingUser));
         }
 
         @Test
-        void assignTicket_ShouldAssignAndReturnTicket() {
+        void assignTicket_WhenAuthorized_ShouldAssignAndReturnTicket() {
+            Long ticketId = 1L;
+            Long assigneeId = 2L;
+            
             Ticket ticket = new Ticket();
-            ticket.setId(1L);
+            ticket.setId(ticketId);
             ticket.setCreatedBy(new User());
 
-            user.setUserRole(UserRole.ROLE_ADMIN);
+            requestingUser.setUserRole(UserRole.ROLE_ADMIN);
 
-            User user1 = new User();
-            user1.setId(2L);
-            given(userRepository.findById(2L)).willReturn(Optional.of(user1));
-            given(ticketRepository.findById(1L)).willReturn(Optional.of(ticket));
+            User assignee = new User();
+            assignee.setId(assigneeId);
+            
+            given(userRepository.findById(assigneeId)).willReturn(Optional.of(assignee));
+            given(ticketRepository.findById(ticketId)).willReturn(Optional.of(ticket));
             given(ticketRepository.save(any(Ticket.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-            Ticket result = ticketService.assignTicket(1L, 2L, user);
+            Ticket result = ticketService.assignTicket(ticketId, assigneeId, requestingUser);
 
-            assertSame(user1, result.getAssignedTo());
+            assertSame(assignee, result.getAssignedTo());
         }
 
         @Test
-        void assignTicket_TicketDoesNotExist_ShouldThrowTicketNotFoundException() {
-            given(ticketRepository.findById(any(Long.class))).willReturn(Optional.empty());
+        void assignTicket_WhenTicketDoesNotExist_ShouldThrowTicketNotFoundException() {
+            Long ticketId = 1L;
+            Long assigneeId = 1L;
+            given(ticketRepository.findById(ticketId)).willReturn(Optional.empty());
 
-            assertThrows(TicketNotFoundException.class, () -> ticketService.assignTicket(1L, 1L, user));
+            assertThrows(TicketNotFoundException.class, () -> ticketService.assignTicket(ticketId, assigneeId, requestingUser));
         }
     }
 
     @Nested
     class WhenChangingStatus {
+
+        private User requestingUser;
+        private User ticketCreator;
+        private Ticket ticket;
+        private Long ticketId;
+
         @BeforeEach
         void setup() {
-            user = new User();
-            user.setId(1L);
+            ticketId = 1L;
+            
+            requestingUser = new User();
+            requestingUser.setId(1L);
 
-            user1 = new User();
-            user1.setId(2L);
+            ticketCreator = new User();
+            ticketCreator.setId(2L);
 
             ticket = new Ticket();
-            ticket.setCreatedBy(user1);
+            ticket.setCreatedBy(ticketCreator);
             ticket.setStatus(TicketStatus.NEW);
 
-            given(ticketRepository.findById(1L)).willReturn(Optional.of(ticket));
+            given(ticketRepository.findById(ticketId)).willReturn(Optional.of(ticket));
         }
 
         @Test
-        void changeStatus_TicketDoesNotExist_ShouldThrowTicketNotFoundException() {
-            given(ticketRepository.findById(1L)).willReturn(Optional.empty());
+        void changeStatus_WhenTicketDoesNotExist_ShouldThrowTicketNotFoundException() {
+            given(ticketRepository.findById(ticketId)).willReturn(Optional.empty());
 
-            assertThrows(TicketNotFoundException.class, () -> ticketService.changeStatus(1L, TicketStatus.IN_PROGRESS, user));
+            assertThrows(TicketNotFoundException.class, () -> ticketService.changeStatus(ticketId, TicketStatus.IN_PROGRESS, requestingUser));
         }
 
         @Test
-        void changeStatus_UserNotAuthorized_ShouldThrowAccessDeniedException() {
-            user.setUserRole(UserRole.ROLE_USER);
+        void changeStatus_WhenUserNotAuthorized_ShouldThrowAccessDeniedException() {
+            requestingUser.setUserRole(UserRole.ROLE_USER);
 
-            assertThrows(AccessDeniedException.class, () -> ticketService.changeStatus(1L, TicketStatus.IN_PROGRESS, user));
+            assertThrows(AccessDeniedException.class, () -> ticketService.changeStatus(ticketId, TicketStatus.IN_PROGRESS, requestingUser));
         }
 
         @Test
-        void changeStatus_IllegalTransition_ShouldThrowIllegalArgumentException() {
+        void changeStatus_WhenIllegalTransition_ShouldThrowIllegalArgumentException() {
             ticket.setStatus(TicketStatus.IN_PROGRESS);
-            user.setUserRole(UserRole.ROLE_ADMIN);
+            requestingUser.setUserRole(UserRole.ROLE_ADMIN);
 
-            assertThrows(IllegalArgumentException.class, () -> ticketService.changeStatus(1L, TicketStatus.NEW, user));
+            assertThrows(IllegalArgumentException.class, () -> ticketService.changeStatus(ticketId, TicketStatus.NEW, requestingUser));
         }
 
         @Test
-        void changeStatus_StatusChangedToClosed_ShouldSetClosedAtProperty() {
+        void changeStatus_WhenChangedToClosed_ShouldSetClosedAtProperty() {
             ticket.setStatus(TicketStatus.IN_PROGRESS);
-            user.setUserRole(UserRole.ROLE_ADMIN);
+            requestingUser.setUserRole(UserRole.ROLE_ADMIN);
             given(ticketRepository.save(any(Ticket.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-            assertNotNull(ticketService.changeStatus(1L, TicketStatus.CLOSED, user).getClosedAt());
+            Ticket result = ticketService.changeStatus(ticketId, TicketStatus.CLOSED, requestingUser);
+
+            assertNotNull(result.getClosedAt());
         }
 
         @Test
-        void changeStatus_StatusChangedToInProgress_ShouldNotSetClosedAtProperty() {
+        void changeStatus_WhenChangedToInProgress_ShouldNotSetClosedAtProperty() {
             ticket.setStatus(TicketStatus.NEW);
-            user.setUserRole(UserRole.ROLE_ADMIN);
+            requestingUser.setUserRole(UserRole.ROLE_ADMIN);
             given(ticketRepository.save(any(Ticket.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-            assertNull(ticketService.changeStatus(1L, TicketStatus.IN_PROGRESS, user).getClosedAt());
+            Ticket result = ticketService.changeStatus(ticketId, TicketStatus.IN_PROGRESS, requestingUser);
+
+            assertNull(result.getClosedAt());
         }
     }
 
     @Nested
     class WhenAddingComment {
 
-        CommentCreateDto commentCreateDto;
+        private CommentCreateDto commentCreateDto;
+        private User commentAuthor;
+        private User ticketCreator;
+        private Ticket ticket;
+        private Long ticketId;
 
         @BeforeEach
         void setup() {
-            user = new User();
-            user.setId(1L);
+            ticketId = 1L;
+            
+            commentAuthor = new User();
+            commentAuthor.setId(1L);
 
-            user1 = new User();
-            user1.setId(2L);
+            ticketCreator = new User();
+            ticketCreator.setId(2L);
 
             ticket = new Ticket();
-            ticket.setCreatedBy(user1);
+            ticket.setCreatedBy(ticketCreator);
             ticket.setStatus(TicketStatus.NEW);
 
             commentCreateDto = new CommentCreateDto();
 
-            given(ticketRepository.findById(1L)).willReturn(Optional.of(ticket));
+            given(ticketRepository.findById(ticketId)).willReturn(Optional.of(ticket));
         }
 
         @Test
-        void addComment_TicketDoesNotExist_ShouldThrowTicketNotFoundException() {
-            given(ticketRepository.findById(1L)).willReturn(Optional.empty());
+        void addComment_WhenTicketDoesNotExist_ShouldThrowTicketNotFoundException() {
+            given(ticketRepository.findById(ticketId)).willReturn(Optional.empty());
 
-            assertThrows(TicketNotFoundException.class, () -> ticketService.addComment(1L, commentCreateDto, user));
+            assertThrows(TicketNotFoundException.class, () -> ticketService.addComment(ticketId, commentCreateDto, commentAuthor));
         }
 
         @Test
-        void addComment_AssignsAuthorAndSetRelationshipWithTicket() {
+        void addComment_ShouldAssignAuthorAndSetRelationshipWithTicket() {
             given(ticketRepository.save(any(Ticket.class))).willAnswer(invocation -> invocation.getArgument(0));
-            Comment result = ticketService.addComment(1L, commentCreateDto, user);
+            
+            Comment result = ticketService.addComment(ticketId, commentCreateDto, commentAuthor);
 
-            assertSame(user, result.getAuthor());
+            assertSame(commentAuthor, result.getAuthor());
             assertSame(ticket, result.getTicket());
             assertTrue(ticket.getComments().contains(result));
         }
