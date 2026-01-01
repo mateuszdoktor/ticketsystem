@@ -46,12 +46,6 @@ public class UserService {
         return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User with id: " + id + ", not found."));
     }
 
-//    @PreAuthorize("hasRole('ADMIN') or #username == authentication.name")
-//    @Transactional(readOnly = true)
-//    public User findByUsername(String username) {
-//        return userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("User with username: " + username + ", not found."));
-//    }
-
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional(readOnly = true)
     public Page<User> findAll(Pageable pageable) {
