@@ -1,9 +1,10 @@
 package com.example.ticketsystem.dto.ticket;
 
 import com.example.ticketsystem.entity.ticket.TicketPriority;
-import jakarta.annotation.Nullable;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,15 +14,18 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TicketCreateDto {
-    @NotBlank
-    @Size(max = 100)
+    @NotBlank(message = "Title is required")
+    @Size(min = 3, max = 100, message = "Title must be between 3 and 100 characters")
     private String title;
-    @NotBlank
-    @Size(max = 500)
+    
+    @NotBlank(message = "Description is required")
+    @Size(min = 10, max = 500, message = "Description must be between 10 and 500 characters")
     private String description;
-    @NotNull
+    
+    @NotNull(message = "Priority is required")
     private TicketPriority priority;
-    @Nullable
+    
+    @Positive(message = "Assigned user ID must be positive")
     private Long assignedToId;
 }
 

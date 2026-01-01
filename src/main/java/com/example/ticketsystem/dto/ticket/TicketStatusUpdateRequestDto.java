@@ -10,6 +10,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TicketStatusUpdateRequestDto {
-    @NotNull
+    @NotNull(message = "Status is required")
     private TicketStatus status;
 }
