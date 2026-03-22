@@ -39,6 +39,12 @@ public class TicketService {
                         new TicketNotFoundException("Ticket with id: " + ticketId + ", not found"));
     }
 
+    private void ensureCanViewTicket(Ticket ticket, User loggedUser) {
+        if (!ticket.canBeViewedBy(loggedUser)) {
+            throw new AccessDeniedException("User not authorised to view this ticket");
+        }
+    }
+
     @PreAuthorize("isAuthenticated()")
     @Transactional
     public Ticket createTicket(TicketCreateDto ticketCreateDto, User loggedUser) {
@@ -60,7 +66,7 @@ public class TicketService {
         return ticketRepository.save(ticket);
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Transactional(readOnly = true)
     public Page<Ticket> searchTickets(TicketFilterObject filterObject, Pageable pageable) {
         Specification<Ticket> spec = TicketSpecifications.fromFilter(filterObject);
@@ -69,10 +75,12 @@ public class TicketService {
 
     @PreAuthorize("isAuthenticated()")
     @Transactional(readOnly = true)
-    public Ticket findById(Long id) {
-        return ticketRepository.findDetailedById(id)
+    public Ticket findById(Long id, User loggedUser) {
+        Ticket ticket = ticketRepository.findDetailedById(id)
                 .orElseThrow(() ->
                         new TicketNotFoundException("Ticket with id: " + id + ", not found"));
+        ensureCanViewTicket(ticket, loggedUser);
+        return ticket;
     }
 
     @PreAuthorize("hasRole('ADMIN') or #userId.toString() == principal.claims['userId']")
@@ -101,20 +109,16 @@ public class TicketService {
         return ticketRepository.findByCreatedById(userId, pageable);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Transactional
-    public Ticket assignTicket(Long ticketId, Long userId, User loggedUser) {
+    public Ticket assignTicket(Long ticketId, Long userId) {
         Ticket ticket = getTicketOrThrow(ticketId);
 
-        if (!ticket.canBeManagedBy(loggedUser)) {
-            throw new AccessDeniedException("User not authorised to this operation");
-        } else {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() ->
-                            new UserNotFoundException("User with id: " + userId + ", not found"));
-            ticket.setAssignedTo(user);
-            return ticketRepository.save(ticket);
-        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new UserNotFoundException("User with id: " + userId + ", not found"));
+        ticket.setAssignedTo(user);
+        return ticketRepository.save(ticket);
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -139,6 +143,7 @@ public class TicketService {
     @Transactional
     public Comment addComment(Long ticketId, CommentCreateDto commentCreateDto, User loggedUser) {
         Ticket ticket = getTicketOrThrow(ticketId);
+        ensureCanViewTicket(ticket, loggedUser);
 
         Comment comment = new Comment();
         comment.setText(commentCreateDto.getText());

@@ -1,6 +1,7 @@
 package com.example.ticketsystem.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -19,6 +20,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import com.example.ticketsystem.entity.comment.Comment;
+import com.example.ticketsystem.entity.ticket.Ticket;
+import com.example.ticketsystem.entity.user.User;
+import com.example.ticketsystem.entity.user.UserRole;
 import com.example.ticketsystem.exceptions.ticket.TicketNotFoundException;
 import com.example.ticketsystem.exceptions.user.UserNotFoundException;
 import com.example.ticketsystem.repository.CommentRepository;
@@ -45,27 +49,31 @@ class CommentServiceTest {
 
         private Pageable pageable;
         private Long ticketId;
+        private User loggedUser;
 
         @BeforeEach
         void setup() {
             pageable = PageRequest.of(0, 10);
             ticketId = 1L;
+            loggedUser = new User();
+            loggedUser.setUserRole(UserRole.ROLE_ADMIN);
         }
 
         @Test
         void findByTicketId_WhenTicketDoesNotExist_ShouldThrowTicketNotFoundException() {
-            given(ticketRepository.existsById(ticketId)).willReturn(false);
+            given(ticketRepository.findById(ticketId)).willReturn(Optional.empty());
 
-            assertThrows(TicketNotFoundException.class, () -> commentService.findByTicketId(ticketId, pageable));
+            assertThrows(TicketNotFoundException.class, () -> commentService.findByTicketId(ticketId, loggedUser, pageable));
         }
 
         @Test
         void findByTicketId_ShouldDelegateToRepositoryAndReturnPage() {
+            Ticket ticket = new Ticket();
             Page<Comment> expectedPage = new PageImpl<>(List.of(new Comment()));
-            given(ticketRepository.existsById(ticketId)).willReturn(true);
+            given(ticketRepository.findById(ticketId)).willReturn(Optional.of(ticket));
             given(commentRepository.findByTicketId(ticketId, pageable)).willReturn(expectedPage);
 
-            Page<Comment> result = commentService.findByTicketId(ticketId, pageable);
+            Page<Comment> result = commentService.findByTicketId(ticketId, loggedUser, pageable);
 
             assertSame(expectedPage, result);
             then(commentRepository).should().findByTicketId(ticketId, pageable);

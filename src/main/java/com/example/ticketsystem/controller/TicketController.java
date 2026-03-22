@@ -31,9 +31,9 @@ import com.example.ticketsystem.entity.comment.Comment;
 import com.example.ticketsystem.entity.ticket.Ticket;
 import com.example.ticketsystem.mapper.CommentMapper;
 import com.example.ticketsystem.mapper.TicketMapper;
+import com.example.ticketsystem.security.CurrentUserService;
 import com.example.ticketsystem.service.CommentService;
 import com.example.ticketsystem.service.TicketService;
-import com.example.ticketsystem.service.UserService;
 import com.example.ticketsystem.util.PaginationUtil;
 
 import jakarta.validation.Valid;
@@ -45,21 +45,20 @@ public class TicketController {
     private final TicketMapper ticketMapper;
     private final CommentMapper commentMapper;
     private final CommentService commentService;
-    private final UserService userService;
+    private final CurrentUserService currentUserService;
 
-    public TicketController(TicketService ticketService, TicketMapper ticketMapper, CommentMapper commentMapper, CommentService commentService, UserService userService) {
+    public TicketController(TicketService ticketService, TicketMapper ticketMapper, CommentMapper commentMapper, CommentService commentService, CurrentUserService currentUserService) {
         this.ticketService = ticketService;
         this.ticketMapper = ticketMapper;
         this.commentMapper = commentMapper;
         this.commentService = commentService;
-        this.userService = userService;
+        this.currentUserService = currentUserService;
     }
 
     @PostMapping
     public ResponseEntity<TicketResponseDto> createTicket(@Valid @RequestBody TicketCreateDto ticketCreateDto,
                                                           @AuthenticationPrincipal Jwt jwt) {
-        Long userId = Long.valueOf(jwt.getClaim("userId").toString());
-        var user = userService.findById(userId);
+        var user = currentUserService.getCurrentUser(jwt);
         Ticket ticket = ticketService.createTicket(ticketCreateDto, user);
         TicketResponseDto ticketResponseDto = ticketMapper.toResponseDto(ticket);
 
@@ -70,8 +69,10 @@ public class TicketController {
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<TicketResponseDto> getTicket(@PathVariable Long id) {
-        Ticket ticket = ticketService.findById(id);
+    public ResponseEntity<TicketResponseDto> getTicket(@PathVariable Long id,
+                                                       @AuthenticationPrincipal Jwt jwt) {
+        var user = currentUserService.getCurrentUser(jwt);
+        Ticket ticket = ticketService.findById(id, user);
         TicketResponseDto ticketResponseDto = ticketMapper.toResponseDto(ticket);
 
         return ResponseEntity.ok(ticketResponseDto);
@@ -90,7 +91,7 @@ public class TicketController {
 
     @GetMapping("/my")
     public ResponseEntity<Page<TicketListDto>> getMyTickets(@AuthenticationPrincipal Jwt jwt, Pageable pageable) {
-        Long userId = Long.valueOf(jwt.getClaim("userId").toString());
+        Long userId = currentUserService.extractUserId(jwt);
         Page<Ticket> page = ticketService.findMyTickets(userId, pageable);
         Page<TicketListDto> dtoPage = page.map(ticketMapper::toListDto);
 
@@ -101,11 +102,8 @@ public class TicketController {
 
     @PatchMapping("/{id}/assignee")
     public ResponseEntity<TicketResponseDto> assignTicket(@PathVariable Long id,
-                                                          @AuthenticationPrincipal Jwt jwt,
                                                           @Valid @RequestBody TicketAssignRequestDto ticketAssignRequestDto) {
-        Long userId = Long.valueOf(jwt.getClaim("userId").toString());
-        var user = userService.findById(userId);
-        Ticket ticket = ticketService.assignTicket(id, ticketAssignRequestDto.getUserId(), user);
+        Ticket ticket = ticketService.assignTicket(id, ticketAssignRequestDto.getUserId());
         TicketResponseDto ticketResponseDto = ticketMapper.toResponseDto(ticket);
 
         return ResponseEntity.ok(ticketResponseDto);
@@ -115,8 +113,7 @@ public class TicketController {
     public ResponseEntity<TicketResponseDto> changeTicketStatus(@PathVariable Long id,
                                                                 @AuthenticationPrincipal Jwt jwt,
                                                                 @Valid @RequestBody TicketStatusUpdateRequestDto ticketStatusUpdateRequestDto) {
-        Long userId = Long.valueOf(jwt.getClaim("userId").toString());
-        var user = userService.findById(userId);
+        var user = currentUserService.getCurrentUser(jwt);
         Ticket ticket = ticketService.changeStatus(id, ticketStatusUpdateRequestDto.getStatus(), user);
         TicketResponseDto ticketResponseDto = ticketMapper.toResponseDto(ticket);
 
@@ -127,8 +124,7 @@ public class TicketController {
     public ResponseEntity<CommentResponseDto> addCommentToTicket(@PathVariable Long id,
                                                                  @AuthenticationPrincipal Jwt jwt,
                                                                  @Valid @RequestBody CommentCreateDto commentCreateDto) {
-        Long userId = Long.valueOf(jwt.getClaim("userId").toString());
-        var user = userService.findById(userId);
+        var user = currentUserService.getCurrentUser(jwt);
         Comment comment = ticketService.addComment(id, commentCreateDto, user);
         CommentResponseDto commentResponseDto = commentMapper.toResponseDto(comment);
 
@@ -136,8 +132,11 @@ public class TicketController {
     }
 
     @GetMapping("/{id}/comments")
-    public ResponseEntity<Page<CommentResponseDto>> getCommentsForTicket(@PathVariable Long id, Pageable pageable) {
-        Page<Comment> page = commentService.findByTicketId(id, pageable);
+    public ResponseEntity<Page<CommentResponseDto>> getCommentsForTicket(@PathVariable Long id,
+                                                                         @AuthenticationPrincipal Jwt jwt,
+                                                                         Pageable pageable) {
+        var user = currentUserService.getCurrentUser(jwt);
+        Page<Comment> page = commentService.findByTicketId(id, user, pageable);
         Page<CommentResponseDto> dtoPage = page.map(commentMapper::toResponseDto);
 
         HttpHeaders httpHeaders = PaginationUtil.buildPaginationHeaders(dtoPage);

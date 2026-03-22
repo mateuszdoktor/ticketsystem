@@ -1,17 +1,19 @@
 package com.example.ticketsystem.exceptions;
 
-import com.example.ticketsystem.exceptions.security.AccessDeniedException;
-import com.example.ticketsystem.exceptions.ticket.TicketNotFoundException;
-import com.example.ticketsystem.exceptions.user.UserAlreadyExistsException;
-import com.example.ticketsystem.exceptions.user.UserNotFoundException;
+import java.time.Instant;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.Instant;
+import com.example.ticketsystem.exceptions.security.AccessDeniedException;
+import com.example.ticketsystem.exceptions.ticket.TicketNotFoundException;
+import com.example.ticketsystem.exceptions.user.UserAlreadyExistsException;
+import com.example.ticketsystem.exceptions.user.UserNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -48,9 +50,25 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ProblemDetail handleSpringAccessDenied(org.springframework.security.access.AccessDeniedException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "You are not allowed to perform this operation");
+        problem.setTitle("Access Denied");
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ProblemDetail handleBadCredentials(BadCredentialsException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+        problem.setTitle("Authentication Failed");
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ProblemDetail handleAuthenticationException(AuthenticationException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Authentication is required");
         problem.setTitle("Authentication Failed");
         problem.setProperty("timestamp", Instant.now());
         return problem;

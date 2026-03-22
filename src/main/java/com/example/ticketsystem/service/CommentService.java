@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.ticketsystem.entity.comment.Comment;
+import com.example.ticketsystem.entity.ticket.Ticket;
+import com.example.ticketsystem.entity.user.User;
+import com.example.ticketsystem.exceptions.security.AccessDeniedException;
 import com.example.ticketsystem.exceptions.ticket.TicketNotFoundException;
 import com.example.ticketsystem.exceptions.user.UserNotFoundException;
 import com.example.ticketsystem.repository.CommentRepository;
@@ -28,10 +31,14 @@ public class CommentService {
 
     @PreAuthorize("isAuthenticated()")
     @Transactional(readOnly = true)
-    public Page<Comment> findByTicketId(Long ticketId, Pageable pageable) {
-        if (!ticketRepository.existsById(ticketId)) {
-            throw new TicketNotFoundException("Ticket with id: " + ticketId + ", not found");
+    public Page<Comment> findByTicketId(Long ticketId, User loggedUser, Pageable pageable) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket with id: " + ticketId + ", not found"));
+
+        if (!ticket.canBeViewedBy(loggedUser)) {
+            throw new AccessDeniedException("User not authorised to view comments for this ticket");
         }
+
         return commentRepository.findByTicketId(ticketId, pageable);
     }
 
