@@ -41,13 +41,12 @@ import jakarta.servlet.http.HttpServletResponse;
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
     @Value("${security.jwt.secret}")
     private String jwtSecret;
 
-    public SecurityConfig(CustomUserDetailsService customUserDetailsService, ObjectMapper objectMapper) {
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
         this.customUserDetailsService = customUserDetailsService;
-        this.objectMapper = objectMapper;
     }
 
     @Bean
