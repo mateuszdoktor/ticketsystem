@@ -1,209 +1,125 @@
-# Ticket System
+<div align="center">
 
-A RESTful ticket management system built with Spring Boot. The application enables users to create, track, and manage support tickets with role-based access control and JWT authentication.
+# Ticket System API
 
-## Features
+[![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://www.oracle.com/java/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0-6DB33F?style=flat&logo=spring-boot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
 
-- **Ticket Management** - Create tickets, update status, assign to users, add comments
-- **User Management** - User registration and administration (Admin only)
-- **Authentication & Authorization** - JWT-based authentication with role-based access control (USER, MANAGER, ADMIN)
-- **Filtering & Pagination** - Search tickets by status, priority, date range, and assignee
-- **Audit Trail** - Automatic tracking of creation and modification timestamps
-- **Integration Tests** - HTTP integration coverage for auth, ticket, and user controllers
-- **Production Readiness** - Profile-based runtime configuration and hardened compose defaults
+*A resilient REST API for comprehensive issue tracking, user management, and seamless collaboration.*
+
+</div>
+
+## About The Project
+
+This repository contains a RESTful backend service built to manage the complete lifecycle of support requests. By exposing a structured API, the system enables users to create tickets, dynamically reassign them, update their resolution statuses, and communicate transparently through threaded comments.
+
+The project demonstrates a robust, enterprise-grade architecture using **Spring Boot 4.0**. It heavily emphasizes domain-driven design principles, comprehensive role-based access control, and automated testing to ensure reliability and security.
+
+### Key Highlights
+* **Secure Architecture:** Built on Spring Security and OAuth2 Resource Server to ensure rigorous, JWT-based layered protection across all endpoints.
+* **Intelligent Querying:** Uses JPA Specifications to enable dynamic, advanced filtering (by status, priority, timeframe, and assignee) without boilerplate query code.
+* **Granular Audit Trail:** Automated auditing seamlessly tracks creation and modification timestamps (`@EntityListeners`) across the domain entities.
+* **Reliable Persistence:** PostgreSQL database seamlessly managed by Flyway migrations to ensure structural consistency alongside the codebase.
+
+---
+
+## API Reference
+
+The service exposes a clean RESTful interface for managing tickets, users, and conversations. Full API documentation is available via **Swagger/OpenAPI** after application startup.
+
+### Core Endpoints
+
+| Method | Endpoint | Description |
+|:---|:---|:---|
+| `POST` | `/auth/login` | Authenticate and obtain a JWT access token. |
+| `GET` | `/api/tickets` | View tickets (with advanced filtering). |
+| `POST` | `/api/tickets` | Create a new support ticket. |
+| `PATCH` | `/api/tickets/{id}/status` | Update the lifecycle status of a ticket. |
+| `PATCH` | `/api/tickets/{id}/assignee` | Reassign the ticket to another support agent. |
+| `POST` | `/api/tickets/{id}/comments` | Append a new comment to a specific ticket. |
+| `GET` | `/api/users` | Retrieve a list of registered users. |
+
+<details>
+<summary><b>Click to see Swagger UI information</b></summary>
+<br>
+
+Once the application is running, the interactive API documentation is automatically generated.
+You can explore all endpoints, request/response schemas, and test them directly in your browser at: 
+`http://localhost:8080/swagger-ui.html`
+
+</details>
+
+---
 
 ## Tech Stack
 
-### Backend
+* **Core:** Java 25, Spring Boot 4.0
+* **Data Layer:** PostgreSQL 16, Flyway, Spring Data JPA
+* **Security:** Spring Security, OAuth2 Resource Server
+* **Utilities:** MapStruct (DTO mapping), Lombok
+* **Testing:** JUnit 5, Mockito, Spring Boot Test, H2 (isolated tests)
+* **DevOps:** Docker, Docker Compose, Maven Wrapper
 
-- **Java 25** with **Spring Boot 4.0**
-- **Spring Security** with JWT authentication (OAuth2 Resource Server)
-- **Spring Data JPA** with Hibernate & PostgreSQL
-- **Flyway** for database migrations
+---
 
-### Key Features & Libraries
+## Project Structure
 
-- **MapStruct** for DTO mapping
-- **Bean Validation** for input validation
-- **SpringDoc OpenAPI** for API documentation
-- **Lombok** for boilerplate reduction
+```text
+ticketsystem/
+├── src/main/java/com/example/ticketsystem/
+│   ├── controller/      # REST API endpoints (Tickets, Users, Auth)
+│   ├── dto/             # Request/Response models mapped via MapStruct
+│   ├── entity/          # JPA Domain Entities natively audited
+│   ├── exceptions/      # Centralized error mapping logic (RFC 7807)
+│   ├── repository/      # JPA Repositories and dynamic specifications
+│   ├── security/        # JWT Authentication mechanisms and filtering
+│   └── service/         # Method-level security and core business logic
+├── src/main/resources/
+│   ├── db/migration/    # Flyway SQL migrations schemas
+│   └── application*.properties # Environment-based runtime flags
+├── src/test/            # BDD-style unit & integration tests
+├── docker-compose.yml   # Infrastructure provisioning (PostgreSQL)
+└── pom.xml              # Project dependencies and build config
+```
 
-### Architecture & Patterns
-
-- Layered architecture (Controller-Service-Repository)
-- DTO pattern with separate request/response models
-- JPA Specification pattern for dynamic queries
-- Method-level security with role-based access control
-- Optimistic locking with `@Version`
-- EntityGraph for N+1 query prevention
-- Centralized exception handling with Problem Details (RFC 7807)
-
-### Testing
-
-- **JUnit 5** with **Mockito**
-- BDD-style unit tests
-- Integration tests for key 200/401/403/404 controller flows
+---
 
 ## Getting Started
 
 ### Prerequisites
+* **Java 25** installed on your local machine.
+* **Docker & Docker Compose** for spinning up the database seamlessly.
 
-- Java 25+
-- Docker & Docker Compose
+### Installation & Setup
 
-### Running the Application
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/ticketsystem.git
+   cd ticketsystem
+   ```
 
-1. Clone the repository
+2. Provision the local environment requirements (and prepare your \`.env\`):
+   ```bash
+   cp .env.example .env
+   ```
 
-```bash
-git clone https://github.com/yourusername/ticketsystem.git
-cd ticketsystem
-```
+3. Start the local PostgreSQL instance:
+   ```bash
+   docker compose up -d
+   ```
 
-2. Prepare local environment variables (kept outside git)
+### Usage
 
-```bash
-cp .env.example .env
-```
-
-3. Start the database
-
-```bash
-docker-compose up -d
-```
-
-4. Run the application
-
+**Run the REST API:**
+Use the provided Maven wrapper to launch the application (using isolated dev properties):
 ```bash
 SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
 ```
+*Flyway will automatically detect environment databases and apply required structural SQL migrations progressively.*
 
-5. Access API documentation at `http://localhost:8080/swagger-ui.html`
-
-### Environment Variables
-
-| Variable                 | Description                                    | Example                                         |
-| ------------------------ | ---------------------------------------------- | ----------------------------------------------- |
-| `SPRING_PROFILES_ACTIVE` | Active runtime profile (`dev` or `prod`)       | `dev`                                           |
-| `POSTGRES_DB`            | Database name used by docker compose           | `ticketsystem`                                  |
-| `POSTGRES_USER`          | Database user used by docker compose           | `postgres`                                      |
-| `POSTGRES_PASSWORD`      | Local compose password (keep only in `.env`)   | `change-me`                                     |
-| `POSTGRES_PORT`          | Host port bound to postgres container          | `5432`                                          |
-| `POSTGRES_INITDB_ARGS`   | Extra init args for Postgres (`scram-sha-256`) | `--auth-host=scram-sha-256`                     |
-| `DB_URL`                 | Spring datasource JDBC URL                     | `jdbc:postgresql://localhost:5432/ticketsystem` |
-| `DB_USERNAME`            | Spring datasource username                     | `postgres`                                      |
-| `DB_PASSWORD`            | Spring datasource password                     | `change-me`                                     |
-| `JWT_SECRET`             | Secret key for JWT signing (min 32 chars)      | `replace-with-at-least-32-characters`           |
-
-### Runtime Profiles
-
-- `dev`
-  - SQL logging enabled
-  - verbose app logs for local debugging
-- `prod`
-  - reduced log verbosity
-  - SQL logging disabled
-  - safer default error detail exposure
-- `test`
-  - in-memory H2 datasource
-  - Flyway disabled for isolated integration tests
-
-Compose hardening notes:
-
-- Postgres is bound to localhost only
-- `POSTGRES_INITDB_ARGS` enables SCRAM host auth
-- healthcheck is configured (`pg_isready`)
-- restart policy is enabled (`unless-stopped`)
-- secrets should be supplied through local `.env` (ignored by git)
-
-## Access Control Policy
-
-Core policy:
-
-- `/auth/**` is public
-- `/api/**` requires JWT
-- role checks are enforced at service layer via `@PreAuthorize`
-- ticket visibility:
-  - ADMIN/MANAGER can view and manage all tickets
-  - USER can view tickets they created or are assigned to
-  - USER can change status only on tickets they created
-
-### Endpoint Authorization Matrix
-
-#### Authentication
-
-| Method | Endpoint      | Access |
-| ------ | ------------- | ------ |
-| POST   | `/auth/login` | Public |
-
-#### Tickets
-
-| Method | Endpoint                     | Access                                 |
-| ------ | ---------------------------- | -------------------------------------- |
-| GET    | `/api/tickets`               | ADMIN, MANAGER                         |
-| GET    | `/api/tickets/{id}`          | Authenticated + ticket visibility rule |
-| GET    | `/api/tickets/my`            | Any authenticated user                 |
-| POST   | `/api/tickets`               | Any authenticated user                 |
-| PATCH  | `/api/tickets/{id}/status`   | Authenticated + ticket management rule |
-| PATCH  | `/api/tickets/{id}/assignee` | ADMIN, MANAGER                         |
-| GET    | `/api/tickets/{id}/comments` | Authenticated + ticket visibility rule |
-| POST   | `/api/tickets/{id}/comments` | Authenticated + ticket visibility rule |
-
-#### Users
-
-| Method | Endpoint                           | Access                              |
-| ------ | ---------------------------------- | ----------------------------------- |
-| GET    | `/api/users`                       | ADMIN                               |
-| GET    | `/api/users/{id}`                  | ADMIN or same user (`userId` claim) |
-| POST   | `/api/users`                       | ADMIN                               |
-| GET    | `/api/users/{id}/created-tickets`  | ADMIN or same user (`userId` claim) |
-| GET    | `/api/users/{id}/assigned-tickets` | ADMIN or same user (`userId` claim) |
-| GET    | `/api/users/{id}/comments`         | ADMIN or same user (`userId` claim) |
-
-## API Endpoints
-
-### Authentication
-
-| Method | Endpoint      | Description                       |
-| ------ | ------------- | --------------------------------- |
-| POST   | `/auth/login` | Authenticate user and receive JWT |
-
-### Tickets
-
-| Method | Endpoint                     | Description                    |
-| ------ | ---------------------------- | ------------------------------ |
-| GET    | `/api/tickets`               | Get all tickets (with filters) |
-| GET    | `/api/tickets/{id}`          | Get ticket details             |
-| GET    | `/api/tickets/my`            | Get current user's tickets     |
-| POST   | `/api/tickets`               | Create a new ticket            |
-| PATCH  | `/api/tickets/{id}/status`   | Update ticket status           |
-| PATCH  | `/api/tickets/{id}/assignee` | Assign ticket to user          |
-| GET    | `/api/tickets/{id}/comments` | Get ticket comments            |
-| POST   | `/api/tickets/{id}/comments` | Add comment to ticket          |
-
-### Users
-
-| Method | Endpoint          | Description             |
-| ------ | ----------------- | ----------------------- |
-| GET    | `/api/users`      | Get all users (Admin)   |
-| GET    | `/api/users/{id}` | Get user details        |
-| POST   | `/api/users`      | Create new user (Admin) |
-
-## Ticket Status Flow
-
+**Run Test Suite:**
+Execute the internal test suite (integration tests utilize an embedded H2 variant avoiding actual database spin-ups):
+```bash
+./mvnw clean test
 ```
-NEW -> IN_PROGRESS -> CLOSED
-```
-
-## Integration Test Scope
-
-Current HTTP integration tests cover key controller scenarios:
-
-- 200 for valid auth and authorized access
-- 401 for missing or invalid authentication
-- 403 for authenticated but unauthorized role access
-- 404 for missing domain resources
-
-## License
-
-This project is for educational and portfolio purposes.
